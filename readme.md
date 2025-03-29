@@ -9,6 +9,7 @@ The **Java Scheduler Library** is a lightweight, in-memory job scheduling framew
 - In-memory storage for jobs and execution results
 - Provides an API for job management
 - Configurable execution intervals
+- Inspiration for execution zip format: [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/java-package.html)
 
 
 ### Building
@@ -18,7 +19,17 @@ The **Java Scheduler Library** is a lightweight, in-memory job scheduling framew
 - Build the project and run tests
 - Builds example lambda, library and wrapper service which exposes CRUD API packaged in docker
 
-#### Running example service
+### Running example service
 ```sh
 docker run -d -p 8080:8080 example_service:1.0.0
 ```
+- Resources feature a sample Postman collection for testing
+
+### Future improvements
+- Add support for different storage configurations (e.g. Redis, MySQL)
+- Implement a job execution queue
+- Add support for job execution retries
+- Add execution timeout configuration
+- Consider remote code execution security
+- Implement logging of execution
+- Consider remote triggers like event queues or webhooks
