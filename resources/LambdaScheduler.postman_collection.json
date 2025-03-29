@@ -1,0 +1,152 @@
+{
+	"info": {
+		"_postman_id": "74a26819-2110-4c30-8adf-666c630bedd3",
+		"name": "LambdaScheduler",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21482109"
+	},
+	"item": [
+		{
+			"name": "Create Lambda",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "REPLACE_PATH/scheduler/resources/example_lambda-1.0-SNAPSHOT.zip"
+						},
+						{
+							"key": "handler",
+							"value": "org.example.ExampleLambdaSuccess",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "TestLambda",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:8080/lambda",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"lambda"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Results",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/lambda/TestLambda/results",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"lambda",
+						"TestLambda",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Executions",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/lambda/TestLambda/execution",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"lambda",
+						"TestLambda",
+						"execution"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "One time trigger",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/lambda/TestLambda/trigger",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"lambda",
+						"TestLambda",
+						"trigger"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cron trigger",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "*/1 * * * * *",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/lambda/TestLambda/cron",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"lambda",
+						"TestLambda",
+						"cron"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
