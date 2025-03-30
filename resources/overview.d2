@@ -1,0 +1,21 @@
+Scheduler -> LambdaExecutor: manages
+Scheduler -> TriggerEvaluator: manages
+Scheduler -> LambdaStatusStorage: reads status
+Scheduler -> LambdaExecutionResultStorage: reads results
+Scheduler -> TriggerStorage: stores triggers
+Scheduler -> LambdaStorage: stores lambdas
+
+LambdaExecutor -> LambdaStorage: reads lambda
+LambdaExecutor -> LambdaExecutionQueue: polls
+LambdaExecutor -> LambdaExecutionContextCacheProvider: provides context
+LambdaExecutor -> LambdaStatusStorage: stores status
+LambdaExecutor -> LambdaExecutionResultStorage: stores results
+
+TriggerEvaluator -> TriggerStorage: reads triggers
+TriggerEvaluator -> LambdaExecutionQueue: pushes
+
+TriggerStorage -> Trigger: stores
+
+LambdaStorage -> LambdaRuntimeDefinition: stores
+LambdaStatusStorage -> LambdaExecutionStatus: stores
+LambdaExecutionResultStorage -> LambdaExecutionResult: stores

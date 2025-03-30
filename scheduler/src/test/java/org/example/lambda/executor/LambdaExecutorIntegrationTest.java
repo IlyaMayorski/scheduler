@@ -5,9 +5,12 @@ import java.util.UUID;
 import org.awaitility.Awaitility;
 import org.example.config.ExecutionConfig;
 import org.example.lambda.LambdaRuntimeDefinition;
+import org.example.lambda.LambdaStorage;
 import org.example.lambda.execution.result.LambdaExecutionResultStorage;
 import org.example.lambda.execution.status.LambdaExecutionState;
 import org.example.lambda.execution.status.LambdaStatusStorage;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -18,13 +21,28 @@ public class LambdaExecutorIntegrationTest {
       Mockito.mock(LambdaStatusStorage.class);
   final LambdaExecutionResultStorage lambdaExecutionResultStorageMock =
       Mockito.mock(LambdaExecutionResultStorage.class);
+  final LambdaStorage lambdaStorageMock = Mockito.mock(LambdaStorage.class);
+  final LambdaExecutionQueue lambdaExecutionQueue =
+      new InMemoryLambdaExecutionQueue();
 
   final LambdaExecutor sut = LambdaExecutor.builder()
       .lambdaStatusStorage(lambdaStatusStorageMock)
       .executionResultStorage(lambdaExecutionResultStorageMock)
       .executionContextCacheProvider(contextProviderMock)
+      .lambdaExecutionQueue(lambdaExecutionQueue)
+      .lambdaStorage(lambdaStorageMock)
       .executionConfig(ExecutionConfig.withMaxConcurrentExecutions(1))
       .build();
+
+  @BeforeEach
+  public void setup() {
+    sut.start();
+  }
+
+  @AfterEach
+  public void tearDown() {
+    sut.shutdown();
+  }
 
   @Test
   public void logsExecutionStatusSuccess() {
@@ -34,9 +52,12 @@ public class LambdaExecutorIntegrationTest {
     Mockito.when(contextProviderMock.prepareExecutionContext(Mockito.any()))
         .thenReturn(() -> result);
 
-    sut.executeLambda(LambdaRuntimeDefinition.builder()
-        .name(name)
-        .build());
+    Mockito.when(lambdaStorageMock.getByName(Mockito.any()))
+        .thenReturn(LambdaRuntimeDefinition.builder()
+            .name(name)
+            .build());
+
+    lambdaExecutionQueue.add(name);
 
     Awaitility.await()
         .atMost(Duration.ofMillis(101))
@@ -62,9 +83,12 @@ public class LambdaExecutorIntegrationTest {
           throw result;
         });
 
-    sut.executeLambda(LambdaRuntimeDefinition.builder()
-        .name(name)
-        .build());
+    Mockito.when(lambdaStorageMock.getByName(Mockito.any()))
+        .thenReturn(LambdaRuntimeDefinition.builder()
+            .name(name)
+            .build());
+
+    lambdaExecutionQueue.add(name);
 
     Awaitility.await()
         .atMost(Duration.ofMillis(101))
@@ -88,9 +112,12 @@ public class LambdaExecutorIntegrationTest {
     Mockito.when(contextProviderMock.prepareExecutionContext(Mockito.any()))
         .thenReturn(() -> result);
 
-    sut.executeLambda(LambdaRuntimeDefinition.builder()
+    Mockito.when(lambdaStorageMock.getByName(Mockito.any()))
+        .thenReturn(LambdaRuntimeDefinition.builder()
             .name(name)
-        .build());
+            .build());
+
+    lambdaExecutionQueue.add(name);
 
     Awaitility.await()
         .atMost(Duration.ofMillis(101))
@@ -109,9 +136,12 @@ public class LambdaExecutorIntegrationTest {
           throw result;
         });
 
-    sut.executeLambda(LambdaRuntimeDefinition.builder()
-        .name(name)
-        .build());
+    Mockito.when(lambdaStorageMock.getByName(Mockito.any()))
+        .thenReturn(LambdaRuntimeDefinition.builder()
+            .name(name)
+            .build());
+
+    lambdaExecutionQueue.add(name);
 
     Awaitility.await()
         .atMost(Duration.ofMillis(101))

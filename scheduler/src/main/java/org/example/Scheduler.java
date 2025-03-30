@@ -2,7 +2,6 @@ package org.example;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Builder;
 import org.example.config.ExecutionConfig;
 import org.example.config.StorageConfig;
@@ -16,18 +15,22 @@ import org.example.lambda.execution.result.LambdaExecutionResultStorage;
 import org.example.lambda.execution.status.InMemoryLambdaStatusStorage;
 import org.example.lambda.execution.status.LambdaExecutionStatus;
 import org.example.lambda.execution.status.LambdaStatusStorage;
+import org.example.lambda.executor.InMemoryLambdaExecutionQueue;
 import org.example.lambda.executor.LambdaExecutionContextCacheProvider;
+import org.example.lambda.executor.LambdaExecutionQueue;
 import org.example.lambda.executor.LambdaExecutor;
 import org.example.lambda.trigger.InMemoryTriggerStorage;
 import org.example.lambda.trigger.Trigger;
+import org.example.lambda.trigger.TriggerEvaluator;
 import org.example.lambda.trigger.TriggerStorage;
 import org.example.lambda.utils.LambdaUtils;
 
 
 public class Scheduler {
 
-  private final AtomicBoolean running = new AtomicBoolean(true);
+  private final TriggerEvaluator triggerEvaluator;
   private final LambdaExecutor lambdaExecutor;
+  private LambdaExecutionQueue lambdaExecutionQueue;
   private LambdaStatusStorage lambdaStatusStorage;
   private LambdaExecutionResultStorage lambdaResultStorage;
   private TriggerStorage triggerStorage;
@@ -40,8 +43,14 @@ public class Scheduler {
     this.lambdaExecutor = LambdaExecutor.builder()
         .executionConfig(executionConfig)
         .executionContextCacheProvider(new LambdaExecutionContextCacheProvider())
+        .lambdaStorage(this.lambdaStorage)
         .lambdaStatusStorage(this.lambdaStatusStorage)
         .executionResultStorage(this.lambdaResultStorage)
+        .lambdaExecutionQueue(this.lambdaExecutionQueue)
+        .build();
+    this.triggerEvaluator = TriggerEvaluator.builder()
+        .lambdaExecutionQueue(this.lambdaExecutionQueue)
+        .triggerStorage(this.triggerStorage)
         .build();
   }
 
@@ -57,6 +66,7 @@ public class Scheduler {
     this.lambdaResultStorage = new InMemoryLambdaExecutionResultStorage();
     this.triggerStorage = new InMemoryTriggerStorage();
     this.lambdaStorage = new InMemoryLambdaStorage();
+    this.lambdaExecutionQueue = new InMemoryLambdaExecutionQueue();
   }
 
   public void createTrigger(final Trigger trigger) {
@@ -77,26 +87,13 @@ public class Scheduler {
   }
 
   public void start() {
-    new Thread(() -> {
-      while (running.get()) {
-        final var triggers = this.triggerStorage.getFiredTriggers();
-        triggers.forEach(trigger -> {
-          lambdaExecutor.executeLambda(lambdaStorage.getByName(trigger.getJobName()));
-          trigger.updateNextExecution();
-        });
-        try {
-          Thread.sleep(500);
-        } catch (InterruptedException e) {
-          System.err.println("Scheduler shutting down...");
-          Thread.currentThread().interrupt();
-          break;
-        }
-      }
-    }).start();
+    triggerEvaluator.start();
+    lambdaExecutor.start();
   }
 
   public void stop() {
-    running.set(false);
+    triggerEvaluator.shutdown();
+    lambdaExecutor.shutdown();
   }
 
   public List<LambdaExecutionResult> getExecutionResults(final String lambdaName) {
